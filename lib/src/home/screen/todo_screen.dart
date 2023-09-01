@@ -69,6 +69,7 @@ class TodoScreen extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 todoController.isSearch.value = true;
+                todoController.filterList("");
               },
               child: SvgPicture.asset('assets/svg/search.svg'),
             ),
@@ -149,9 +150,13 @@ class TodoScreen extends StatelessWidget {
             Expanded(
               child: Obx(
                 () => ListView.builder(
-                  itemCount: todoController.listTodo.length,
+                  itemCount: todoController.isSearch.value
+                      ? todoController.listSearch.length
+                      : todoController.listTodo.length,
                   itemBuilder: (BuildContext context, int index) {
-                    final todo = todoController.listTodo[index];
+                    final todo = todoController.isSearch.value
+                        ? todoController.listSearch[index]
+                        : todoController.listTodo[index];
                     return Container(
                       margin: const EdgeInsets.only(left: 8, right: 8, top: 8),
                       decoration: BoxDecoration(

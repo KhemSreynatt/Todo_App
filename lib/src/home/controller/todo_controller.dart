@@ -4,6 +4,7 @@ class TodoController extends GetxController {
   final isSearch = false.obs;
 
   final listTodo = ["Flutter Dev", "Web Dev", "Mobile Dev"].obs;
+
   final listSearch = <String>[].obs;
   //List<String> get todos => listTodo.toList();
 
@@ -20,11 +21,15 @@ class TodoController extends GetxController {
   }
 
   filterList(String searchQuery) {
-    listTodo
+    if (searchQuery.isEmpty) {
+      listSearch.value = listTodo;
+    } else {}
+    final result = listTodo
         .where((value) => value.toLowerCase().contains(
               searchQuery.toLowerCase(),
             ))
         .toList();
-    listSearch.add(listTodo.toString());
+    // listSearch.add(listTodo.toString());
+    listSearch.value = result;
   }
 }
