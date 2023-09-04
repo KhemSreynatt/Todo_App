@@ -100,20 +100,25 @@ class TodoScreen extends StatelessWidget {
                       : Expanded(
                           child: TextFormField(
                             controller: _todoController,
+                            autofocus: true,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10)),
-                              labelText: 'Add a item ',
-                              labelStyle: const TextStyle(
+                              labelText:
+                                  todoController.isDuplicate.value == true
+                                      ? 'Item is duplicate'
+                                      : 'Add a item ',
+                              labelStyle: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.blueGrey,
+                                color: todoController.isDuplicate.value == true
+                                    ? Colors.red
+                                    : Colors.blueGrey,
                               ),
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   final newTodo = _todoController.text.trim();
                                   if (newTodo.isNotEmpty) {
-                                    onSetTodo(newTodo);
                                     todoController.addItem(newTodo);
                                     _todoController.clear();
                                   }
@@ -130,8 +135,11 @@ class TodoScreen extends StatelessWidget {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: const BorderSide(
-                                  color: Colors.blueGrey,
+                                borderSide: BorderSide(
+                                  color:
+                                      todoController.isDuplicate.value == true
+                                          ? Colors.red
+                                          : Colors.blueGrey,
                                 ),
                               ),
                             ),
