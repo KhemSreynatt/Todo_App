@@ -1,19 +1,26 @@
+// ignore_for_file: deprecated_member_use, must_be_immutable
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/todo_controller.dart';
 import '../custom/show_dailog.dart';
 
 class TodoScreen extends StatelessWidget {
+  TodoScreen({super.key});
+  final TodoController todoController = Get.put(TodoController());
   final TextEditingController _todoController = TextEditingController();
   final TextEditingController _todoControllerSearch = TextEditingController();
-  TodoScreen({super.key});
+  String? text;
+
+  onSetTodo(String title) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('title', title);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TodoController todoController = Get.put(TodoController());
-
     return Obx(
       () => Scaffold(
         appBar: AppBar(
@@ -30,7 +37,7 @@ class TodoScreen extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                     onChanged: (e) {
-                      todoController.filterList(e);
+                      todoController.searchItem(e);
                     },
                     controller: _todoControllerSearch,
                     decoration: InputDecoration(
@@ -69,7 +76,7 @@ class TodoScreen extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 todoController.isSearch.value = true;
-                todoController.filterList("");
+                todoController.searchItem("");
               },
               child: SvgPicture.asset('assets/svg/search.svg'),
             ),
@@ -106,7 +113,8 @@ class TodoScreen extends StatelessWidget {
                                 onTap: () {
                                   final newTodo = _todoController.text.trim();
                                   if (newTodo.isNotEmpty) {
-                                    todoController.addTodo(newTodo);
+                                    onSetTodo(newTodo);
+                                    todoController.addItem(newTodo);
                                     _todoController.clear();
                                   }
                                 },
@@ -123,7 +131,6 @@ class TodoScreen extends StatelessWidget {
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
                                 borderSide: const BorderSide(
-                                  // width: 1.8,
                                   color: Colors.blueGrey,
                                 ),
                               ),
@@ -149,75 +156,127 @@ class TodoScreen extends StatelessWidget {
             ),
             Expanded(
               child: Obx(
-                () => ListView.builder(
-                  itemCount: todoController.isSearch.value
-                      ? todoController.listSearch.length
-                      : todoController.listTodo.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final todo = todoController.isSearch.value
-                        ? todoController.listSearch[index]
-                        : todoController.listTodo[index];
-                    return Container(
-                      margin: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              width: 1, color: Colors.grey.withOpacity(0.2))),
-                      child: ListTile(
-                        title: Text(
-                          todo,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                () => todoController.isSearch.value == true &&
+                        todoController.listFilter.isEmpty
+                    ? Center(
+                        child: Container(
+                          height: 200,
+                          width: 200,
+                          margin: const EdgeInsets.only(bottom: 100),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            image: const DecorationImage(
+                                image: AssetImage("assets/png/no_data.jpeg")),
                           ),
                         ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                onShowEditDialog(
-                                  context,
-                                  todoController,
-                                  index,
-                                );
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.blueGrey.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(8)),
-                                padding: const EdgeInsets.all(7),
-                                height: 34,
-                                width: 34,
-                                child: SvgPicture.asset('assets/svg/edit.svg'),
+                      )
+                    : ListView.builder(
+                        itemCount: todoController.isSearch.value
+                            ? todoController.listFilter.length
+                            : todoController.listTodo.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final todo = todoController.isSearch.value
+                              ? todoController.listFilter[index]
+                              : todoController.listTodo[index];
+
+                          return Container(
+                            margin: const EdgeInsets.only(
+                                left: 8, right: 8, top: 8),
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    width: 1,
+                                    color: Colors.grey.withOpacity(0.2))),
+                            child: ListTile(
+                              title: Obx(
+                                () => Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        todoController.onComplete(index);
+                                      },
+                                      child: todoController.listTodo[index]
+                                                  .isCompleted ==
+                                              false
+                                          ? SvgPicture.asset(
+                                              'assets/svg/circle.svg',
+                                              color: Colors.blueGrey,
+                                            )
+                                          : SvgPicture.asset(
+                                              'assets/svg/Check_done.svg',
+                                              color: Colors.blueGrey,
+                                            ),
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      "${todo.title}",
+                                      style: TextStyle(
+                                        decoration: todoController
+                                                    .listTodo[index]
+                                                    .isCompleted ==
+                                                false
+                                            ? TextDecoration.none
+                                            : TextDecoration.lineThrough,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      todoController.isDuplicate.value = false;
+                                      onShowEditDialog(
+                                        context,
+                                        todoController,
+                                        index,
+                                      );
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.blueGrey.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      padding: const EdgeInsets.all(7),
+                                      height: 34,
+                                      width: 34,
+                                      child: SvgPicture.asset(
+                                          'assets/svg/edit.svg'),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Container(
+                                    height: 34,
+                                    width: 34,
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.all(7),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        todoController.removeItem(index);
+                                      },
+                                      child: SvgPicture.asset(
+                                          'assets/svg/delete.svg'),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Container(
-                              height: 34,
-                              width: 34,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.all(7),
-                              child: GestureDetector(
-                                onTap: () {
-                                  todoController.removeTodoAt(index);
-                                },
-                                child:
-                                    SvgPicture.asset('assets/svg/delete.svg'),
-                              ),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ),
           ],

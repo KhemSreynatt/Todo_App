@@ -1,35 +1,63 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:vtech_todo/src/home/model/todo_model.dart';
 
 class TodoController extends GetxController {
   final isSearch = false.obs;
+  final isCompele = false.obs;
+  final isDuplicate = false.obs;
 
-  final listTodo = ["Flutter Dev", "Web Dev", "Mobile Dev"].obs;
+  final listTodo = <TodoModel>[
+    TodoModel(title: 'Flutter Dev'),
+    TodoModel(
+      title: 'Web Dev',
+    )
+  ].obs;
+  final listFilter = <TodoModel>[].obs;
 
-  final listSearch = <String>[].obs;
-  //List<String> get todos => listTodo.toList();
-
-  addTodo(String todo) {
-    listTodo.add(todo);
+  addItem(String title) {
+    final item = TodoModel(title: title);
+    if (!listTodo.any((element) => element.title == title)) {
+      listTodo.add(item);
+      isDuplicate.value = false;
+    } else {
+      isDuplicate.value = true;
+    }
   }
 
-  updateTodoAt(int index, String newTodo) {
-    listTodo[index] = newTodo;
+  editItem(BuildContext context, int index, String editItem) {
+    if (!listTodo.any((element) => element.title == editItem)) {
+      final item = listTodo[index];
+      item.title = editItem;
+      listTodo[index] = item;
+      isDuplicate.value = false;
+      Navigator.pop(context);
+    } else {
+      isDuplicate.value = true;
+    }
   }
 
-  removeTodoAt(int index) {
+  removeItem(int index) {
     listTodo.removeAt(index);
   }
 
-  filterList(String searchQuery) {
-    if (searchQuery.isEmpty) {
-      listSearch.value = listTodo;
+  onComplete(int index) {
+    final item = listTodo[index];
+    item.isCompleted = !item.isCompleted!;
+    listTodo[index] = item;
+  }
+
+  searchItem(String filter) {
+    if (filter.isEmpty) {
+      listFilter.value = listTodo;
     } else {}
     final result = listTodo
-        .where((value) => value.toLowerCase().contains(
-              searchQuery.toLowerCase(),
-            ))
+        .where(
+          (value) => value.title!.toLowerCase().contains(
+                filter.toLowerCase(),
+              ),
+        )
         .toList();
-    // listSearch.add(listTodo.toString());
-    listSearch.value = result;
+    listFilter.value = result;
   }
 }

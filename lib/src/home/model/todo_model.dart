@@ -1,8 +1,8 @@
 class TodoModel {
-  final String? title;
-  final bool? isCompleted;
+  String? title;
+  bool? isCompleted;
   TodoModel({
-    this.isCompleted,
+    this.isCompleted = false,
     this.title,
   });
 }
