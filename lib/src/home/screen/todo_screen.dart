@@ -1,8 +1,8 @@
 // ignore_for_file: deprecated_member_use, must_be_immutable
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/todo_controller.dart';
 import '../custom/show_dailog.dart';
@@ -21,6 +21,10 @@ class TodoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var nows = DateTime.now();
+    var formatter = DateFormat().add_jm();
+    String formattedDate = formatter.format(nows);
+
     return Obx(
       () => Scaffold(
         appBar: AppBar(
@@ -91,6 +95,7 @@ class TodoScreen extends StatelessWidget {
             const SizedBox(
               height: 10,
             ),
+            //Text(formattedDate),
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Row(
@@ -101,26 +106,37 @@ class TodoScreen extends StatelessWidget {
                           child: TextFormField(
                             controller: _todoController,
                             autofocus: true,
+                            onTap: () {
+                              todoController.isNull.value = false;
+                            },
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10)),
-                              labelText:
-                                  todoController.isDuplicate.value == true
+                              labelText: todoController.isNull.value == true
+                                  ? "Empty item"
+                                  : todoController.isDuplicate.value == true
                                       ? 'Item is duplicate'
                                       : 'Add a item ',
                               labelStyle: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
-                                color: todoController.isDuplicate.value == true
+                                color: todoController.isNull.value == true ||
+                                        todoController.isDuplicate.value == true
                                     ? Colors.red
                                     : Colors.blueGrey,
                               ),
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   final newTodo = _todoController.text.trim();
+                                  todoController.confirmItem.value = newTodo;
+                                  todoController.time.value = formattedDate;
                                   if (newTodo.isNotEmpty) {
-                                    todoController.addItem(newTodo);
+                                    todoController.addItem(newTodo,
+                                        todoController.time.value, context);
                                     _todoController.clear();
+                                    todoController.isNull.value = false;
+                                  } else {
+                                    todoController.isNull.value = true;
                                   }
                                 },
                                 child: Container(
@@ -136,10 +152,11 @@ class TodoScreen extends StatelessWidget {
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
                                 borderSide: BorderSide(
-                                  color:
-                                      todoController.isDuplicate.value == true
-                                          ? Colors.red
-                                          : Colors.blueGrey,
+                                  color: todoController.isNull.value == true ||
+                                          todoController.isDuplicate.value ==
+                                              true
+                                      ? Colors.red
+                                      : Colors.blueGrey,
                                 ),
                               ),
                             ),
@@ -222,6 +239,22 @@ class TodoScreen extends StatelessWidget {
                                     ),
                                     Text(
                                       "${todo.title}",
+                                      style: TextStyle(
+                                        decoration: todoController
+                                                    .listTodo[index]
+                                                    .isCompleted ==
+                                                false
+                                            ? TextDecoration.none
+                                            : TextDecoration.lineThrough,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      "${todo.time == null || todo.time == '' ? '' : todo.time}",
                                       style: TextStyle(
                                         decoration: todoController
                                                     .listTodo[index]

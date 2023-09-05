@@ -61,3 +61,40 @@ onShowEditDialog(
     },
   );
 }
+
+onShowDuplicat(
+  BuildContext context,
+) {
+  final controller = Get.put(TodoController());
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: const Text(
+          'It`s Duplicate Item.',
+          style: TextStyle(
+            color: Colors.red,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              controller.isDuplicate.value = false;
+              controller.onConfirm(
+                  controller.confirmItem.value, controller.time.value);
+            },
+            child: const Text('Comfirm'),
+          ),
+        ],
+      );
+    },
+  );
+}

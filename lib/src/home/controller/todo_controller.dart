@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:vtech_todo/src/home/model/todo_model.dart';
 
+import '../custom/show_dailog.dart';
+
 class TodoController extends GetxController {
   final isSearch = false.obs;
   final isCompele = false.obs;
   final isDuplicate = false.obs;
-
+  final isNull = false.obs;
+  final confirmItem = ''.obs;
+  final time = ''.obs;
   final listTodo = <TodoModel>[
     TodoModel(title: 'Flutter Dev'),
     TodoModel(
@@ -15,14 +19,25 @@ class TodoController extends GetxController {
   ].obs;
   final listFilter = <TodoModel>[].obs;
 
-  addItem(String title) {
-    final item = TodoModel(title: title);
+  addItem(
+    String title,
+    String time,
+    BuildContext context,
+  ) {
+    final item = TodoModel(title: title, time: time);
     if (!listTodo.any((element) => element.title == title)) {
       listTodo.add(item);
       isDuplicate.value = false;
     } else {
+      onShowDuplicat(context);
       isDuplicate.value = true;
+      // listTodo.add(item);
     }
+  }
+
+  onConfirm(String? title, String? time) {
+    final item = TodoModel(title: title, time: time);
+    listTodo.add(item);
   }
 
   editItem(BuildContext context, int index, String editItem) {
