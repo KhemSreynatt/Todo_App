@@ -11,6 +11,11 @@ class TodoController extends GetxController {
   final isNull = false.obs;
   final confirmItem = ''.obs;
   final time = ''.obs;
+  final listItem = <TodoModel>[].obs;
+
+  //firebase
+
+  //end
   final listTodo = <TodoModel>[
     TodoModel(title: 'Flutter Dev'),
     TodoModel(
