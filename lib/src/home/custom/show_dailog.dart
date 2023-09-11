@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:vtech_todo/src/home/model/todo_model.dart';
 
 import '../controller/todo_controller.dart';
 
 onShowEditDialog(
-    BuildContext context, TodoController todoController, int index) {
-  final textController =
-      TextEditingController(text: todoController.listTodo[index].title);
+    BuildContext context, TodoController todoController, TodoModel todo) {
+  TextEditingController textController =
+      TextEditingController(text: todo.title);
+  // final textController =
+  //     TextEditingController(text: todoController.listTodo[index].title);
   final controller = Get.put(TodoController());
+  // final todoModel = todoController.todoList.value[index];
 
   showDialog(
     context: context,
@@ -50,7 +54,12 @@ onShowEditDialog(
               onPressed: () {
                 final newText = textController.text.trim();
                 if (newText.isNotEmpty) {
-                  todoController.editItem(context, index, newText);
+                  controller.updateTitle(
+                    textController.text,
+                    todo.documentId,
+                  );
+                  Navigator.pop(context);
+                  // todoController.editItem(context, index, newText);
                 }
               },
               child: const Text('Update'),
@@ -66,13 +75,13 @@ onShowDuplicat(
   BuildContext context,
 ) {
   final controller = Get.put(TodoController());
-
+  // final todoModel = controller.todoList.value[index];
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         content: const Text(
-          'It`s Duplicate Item.',
+          'Item already exists!',
           style: TextStyle(
             color: Colors.red,
           ),
@@ -80,6 +89,7 @@ onShowDuplicat(
         actions: [
           TextButton(
             onPressed: () {
+              controller.isDuplicate.value = false;
               Navigator.pop(context);
             },
             child: const Text('Cancel'),
@@ -87,9 +97,11 @@ onShowDuplicat(
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
+              controller.addDuplicat(TodoModel(
+                  title: controller.confirmItem.value,
+                  time: controller.time.value,
+                  iscompleted: false));
               controller.isDuplicate.value = false;
-              controller.onConfirm(
-                  controller.confirmItem.value, controller.time.value);
             },
             child: const Text('Comfirm'),
           ),
