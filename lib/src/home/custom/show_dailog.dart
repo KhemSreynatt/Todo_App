@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:vtech_todo/src/home/model/todo_model.dart';
 
 import '../controller/todo_controller.dart';
@@ -8,10 +10,8 @@ onShowEditDialog(
     BuildContext context, TodoController todoController, TodoModel todo) {
   TextEditingController textController =
       TextEditingController(text: todo.title);
-  // final textController =
-  //     TextEditingController(text: todoController.listTodo[index].title);
+
   final controller = Get.put(TodoController());
-  // final todoModel = todoController.todoList.value[index];
 
   showDialog(
     context: context,
@@ -59,7 +59,6 @@ onShowEditDialog(
                     todo.documentId,
                   );
                   Navigator.pop(context);
-                  // todoController.editItem(context, index, newText);
                 }
               },
               child: const Text('Update'),
@@ -75,7 +74,9 @@ onShowDuplicat(
   BuildContext context,
 ) {
   final controller = Get.put(TodoController());
-  // final todoModel = controller.todoList.value[index];
+  var nows = DateTime.now();
+  var formatter = DateFormat().add_jm();
+  String formattedDate = formatter.format(nows);
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -97,10 +98,13 @@ onShowDuplicat(
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              controller.addDuplicat(TodoModel(
-                  title: controller.confirmItem.value,
-                  time: controller.time.value,
-                  iscompleted: false));
+              controller.addDuplicat(
+                TodoModel(
+                    title: controller.confirmItem.value,
+                    createdDate: Timestamp.now(),
+                    time: formattedDate,
+                    iscompleted: false),
+              );
               controller.isDuplicate.value = false;
             },
             child: const Text('Comfirm'),

@@ -19,8 +19,6 @@ class TodoController extends GetxController {
   final listItem = <TodoModel>[].obs;
   final todoList = <TodoModel>[].obs;
 
-  // final isLoading = false.obs;
-
   @override
   void onReady() {
     bindTodoStream();
@@ -31,18 +29,18 @@ class TodoController extends GetxController {
   }
 
   //firebase
+
   Stream<List<TodoModel>> _todoStream() {
     return FirebaseFirestore.instance
         .collection('todos')
+        .orderBy('createdDate', descending: true)
         .snapshots()
         .map((QuerySnapshot query) {
       final queryText = searchText.value;
       final shouldSearch = queryText.removeAllWhitespace.isNotEmpty;
-
       return query.docs
           .map((e) => TodoModel.fromDocumentSnapshot(documentSnapshot: e))
           .where((todo) {
-        FirebaseFirestore.instance.collection('todos').orderBy('title').get();
         if (shouldSearch) {
           return todo.title.toLowerCase().contains(queryText.toLowerCase()) ||
               queryText.toLowerCase().contains(todo.title.toLowerCase());
@@ -64,14 +62,14 @@ class TodoController extends GetxController {
       await FirebaseFirestore.instance.collection('todos').add(
         {
           'title': todo.title,
-          'time': todo.time,
+          'createdDate': todo.createdDate,
           'isCompleted': false,
+          'time': todo.time,
         },
       );
-      isDuplicate.value = false; // print('Item added successfully!');
+      isDuplicate.value = false;
     } else {
       isDuplicate.value = true;
-      // print('Item already exists!');
 
       onShowDuplicat(context);
     }
@@ -80,6 +78,7 @@ class TodoController extends GetxController {
   addDuplicat(TodoModel todo) async {
     await FirebaseFirestore.instance.collection('todos').add({
       'title': todo.title,
+      'createdDate': todo.createdDate,
       'time': todo.time,
       'isCompleted': false,
     });
@@ -102,69 +101,4 @@ class TodoController extends GetxController {
     todos.iscompleted = !todos.iscompleted!;
     todoList[index] = todos;
   }
-  //end
-  // final listTodo = <TodoModel>[
-  //   TodoModel(title: 'Flutter Dev'),
-  //   TodoModel(
-  //     title: 'Web Dev',
-  //   )
-  // ].obs;
-  // final listFilter = <TodoModel>[].obs;
-
-  // addItem(
-  //   String title,
-  //   String time,
-  //   BuildContext context,
-  // ) {
-  //   final item = TodoModel(title: title, time: time);
-  //   if (!listTodo.any((element) => element.title == title)) {
-  //     listTodo.add(item);
-  //     isDuplicate.value = false;
-  //   } else {
-  //     onShowDuplicat(context);
-  //     isDuplicate.value = true;
-  //     // listTodo.add(item);
-  //   }
-  // }
-
-  // onConfirm(String? title, String? time) {
-  //   final item = TodoModel(title: title, time: time);
-  //   listTodo.add(item);
-  // }
-
-  // editItem(BuildContext context, int index, String editItem) {
-  //   if (!listTodo.any((element) => element.title == editItem)) {
-  //     final item = listTodo[index];
-  //     item.title = editItem;
-  //     listTodo[index] = item;
-  //     isDuplicate.value = false;
-  //     Navigator.pop(context);
-  //   } else {
-  //     isDuplicate.value = true;
-  //   }
-  // }
-
-  // removeItem(int index) {
-  //   listTodo.removeAt(index);
-  // }
-
-  // onComplete(int index) {
-  //   final item = listTodo[index];
-  //   item.isCompleted = !item.isCompleted!;
-  //   listTodo[index] = item;
-  // }
-
-  // searchItem(String filter) {
-  //   if (filter.isEmpty) {
-  //     listFilter.value = listTodo;
-  //   } else {}
-  //   final result = listTodo
-  //       .where(
-  //         (value) => value.title!.toLowerCase().contains(
-  //               filter.toLowerCase(),
-  //             ),
-  //       )
-  //       .toList();
-  //   listFilter.value = result;
-  // }
 }
